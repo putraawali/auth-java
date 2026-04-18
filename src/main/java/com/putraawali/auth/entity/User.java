@@ -20,10 +20,10 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "createdAt")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(name = "updatedAt")
+    @Column(name = "updated_at", nullable = true)
     private LocalDateTime updatedAt;
 
     // Lifecycle hooks

@@ -6,6 +6,8 @@ import com.putraawali.auth.service.AuthService;
 
 import jakarta.validation.Valid;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
@@ -18,10 +20,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ApiResponse<String> register(@Valid @RequestBody RegisterRequest req) {
-
+    public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequest req) {
         authService.register(req);
-
-        return ApiResponse.success("User registered");
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User registered"));
     }
 }
