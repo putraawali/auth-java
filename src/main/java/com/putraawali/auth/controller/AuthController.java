@@ -1,7 +1,9 @@
 package com.putraawali.auth.controller;
 
+import com.putraawali.auth.dto.request.LoginRequest;
 import com.putraawali.auth.dto.request.RegisterRequest;
 import com.putraawali.auth.dto.response.ApiResponse;
+import com.putraawali.auth.dto.response.LoginResponse;
 import com.putraawali.auth.service.AuthService;
 
 import jakarta.validation.Valid;
@@ -23,5 +25,11 @@ public class AuthController {
     public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody RegisterRequest req) {
         authService.register(req);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("User registered"));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest req) {
+        LoginResponse response = authService.login(req);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

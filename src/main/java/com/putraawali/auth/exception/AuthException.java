@@ -1,8 +1,10 @@
 package com.putraawali.auth.exception;
 
-import org.springframework.http.HttpStatusCode;
+import java.util.Objects;
 
-import io.micrometer.common.lang.NonNull;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.lang.NonNull;
+
 import lombok.Getter;
 
 @Getter
@@ -12,6 +14,6 @@ public class AuthException extends RuntimeException {
 
     public AuthException(String message, HttpStatusCode statusCode) {
         super(message);
-        this.statusCode = statusCode;
+        this.statusCode = Objects.requireNonNull(statusCode);
     }
 }

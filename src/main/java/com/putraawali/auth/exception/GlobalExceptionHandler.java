@@ -2,8 +2,8 @@ package com.putraawali.auth.exception;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
-import org.apache.catalina.connector.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +35,8 @@ public class GlobalExceptionHandler {
 
         ApiResponse<Object> response = ApiResponse.error(errors);
 
-        return ResponseEntity.status(ex.getStatusCode()).body(response);
+        HttpStatusCode statusCode = ex.getStatusCode() != null ? ex.getStatusCode() : HttpStatus.INTERNAL_SERVER_ERROR;
+
+        return ResponseEntity.status(Objects.requireNonNull(statusCode)).body(response);
     }
 }
