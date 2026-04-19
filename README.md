@@ -127,24 +127,24 @@ jwt.refresh-token-expiration=20160
 
 ### Login Request
 
-```
+```json
 {
-  "email": "user@email.com",
-  "password": "password"
+    "email": "user@email.com",
+    "password": "password"
 }
 ```
 
 ### Login Response
 
-```
+```json
 {
-  "message": "success",
-  "data": {
-    "accessToken": "...",
-    "refreshToken": "...",
-    "tokenType": "Bearer"
-  },
-  "error": null
+    "message": "success",
+    "data": {
+        "accessToken": "...",
+        "refreshToken": "...",
+        "tokenType": "Bearer"
+    },
+    "error": null
 }
 ```
 
@@ -193,13 +193,9 @@ Each login creates a session:
 
 ## ▶️ Running the Project
 
-# build
-
-mvn clean install
-
-# run
-
-mvn spring-boot:run
+```bash
+docker-compose up -d
+```
 
 ---
 
