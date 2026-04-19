@@ -24,7 +24,7 @@ public class JwtManager {
     }
 
     private String generateToken(User user, long expiration, String type) {
-        Map<String, ?> claims = Map.of(
+        Map<String, Object> claims = Map.of(
             "email", user.getEmail(),
             "issuer", jwtProperties.getIssuer(),
             "type", type
@@ -35,7 +35,7 @@ public class JwtManager {
 
         return Jwts.builder().
             setSubject(user.getId().toString()).
-            setClaims(claims).
+            addClaims(claims).
             setIssuedAt(now).
             setExpiration(expiryDate).
             signWith(signingKey(), SignatureAlgorithm.HS256).
@@ -50,5 +50,26 @@ public class JwtManager {
     public String generateRefreshToken(User user) {
         long tokenExpiresInMs = jwtProperties.getRefreshTokenExpiration() * 7 * 60 * 1000;
         return generateToken(user, tokenExpiresInMs, "refresh");
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public String getUserIdFromToken(String token) {
+        return Jwts.parserBuilder()
+            .setSigningKey(signingKey())
+            .build()
+            .parseClaimsJws(token)
+            .getBody()
+            .getSubject();
     }
 }

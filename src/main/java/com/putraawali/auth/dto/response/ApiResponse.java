@@ -1,5 +1,7 @@
 package com.putraawali.auth.dto.response;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.Getter;
 
 @Getter
@@ -22,5 +24,14 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> error(Object error) {
         return new ApiResponse<T>("error", null, error);
+    }
+    
+    public String toJson() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            return objectMapper.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new RuntimeException("Error converting to JSON", e);
+        }
     }
 }

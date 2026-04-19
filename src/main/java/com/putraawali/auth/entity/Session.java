@@ -40,6 +40,8 @@ public class Session {
     // Lifecycle hooks
     @PrePersist
     public void prePersist() {
-        this.absoluteExpiration = LocalDateTime.now().plusWeeks(2);
+        if (this.absoluteExpiration == null) {
+            this.absoluteExpiration = LocalDateTime.now().plusWeeks(2);
+        }
     }
 }
