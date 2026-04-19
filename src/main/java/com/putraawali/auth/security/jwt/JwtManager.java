@@ -27,7 +27,9 @@ public class JwtManager {
         Map<String, Object> claims = Map.of(
             "email", user.getEmail(),
             "issuer", jwtProperties.getIssuer(),
-            "type", type
+            "type", type,
+            "customerId", user.getId()
+
         );
 
         Date now = new Date();
@@ -66,10 +68,18 @@ public class JwtManager {
 
     public String getUserIdFromToken(String token) {
         return Jwts.parserBuilder()
+                .setSigningKey(signingKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+    
+    public Map<String, Object> getAllClaims(String token) {
+        return Jwts.parserBuilder()
             .setSigningKey(signingKey())
             .build()
             .parseClaimsJws(token)
-            .getBody()
-            .getSubject();
+            .getBody();
     }
 }

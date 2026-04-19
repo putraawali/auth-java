@@ -2,6 +2,7 @@ package com.putraawali.auth.controller;
 
 import com.putraawali.auth.dto.request.LoginRequest;
 import com.putraawali.auth.dto.request.RegisterRequest;
+import com.putraawali.auth.dto.request.UserPrincipal;
 import com.putraawali.auth.dto.response.ApiResponse;
 import com.putraawali.auth.dto.response.TokenResponse;
 import com.putraawali.auth.service.AuthService;
@@ -10,6 +11,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/auth")
@@ -34,8 +36,18 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@RequestHeader("Refresh-Token") String refreshToken) {
+    public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(
+            @RequestHeader("Refresh-Token") String refreshToken) {
         TokenResponse response = authService.refreshToken(refreshToken);
         return ResponseEntity.ok(ApiResponse.success(response));
+    }
+    
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<String>> logout(
+        Authentication authentication 
+    ) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+        authService.logout(userPrincipal.getCustomerId());
+        return ResponseEntity.ok(ApiResponse.success("Logged out successfully"));
     }
 }

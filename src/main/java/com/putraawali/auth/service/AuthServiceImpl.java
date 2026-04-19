@@ -106,11 +106,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         User user = userRepository.findById(session.getUserId())
-            .orElseThrow(() -> new AuthException("User not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AuthException("User not found", HttpStatus.NOT_FOUND));
 
         String newAccessToken = jwtManager.generateAccessToken(user);
         String newRefreshToken = jwtManager.generateRefreshToken(user);
-    
+
         // Create new session (rotation + sliding expiration)
         Session newSession = new Session();
         newSession.setUserId(user.getId());
@@ -124,5 +124,10 @@ public class AuthServiceImpl implements AuthService {
         sessionRepository.save(session);
 
         return new TokenResponse(newAccessToken, newRefreshToken);
+    }
+    
+    @Override
+    public void logout(int customerId) {
+        sessionRepository.revokeAllByUserId((long) customerId);
     }
 }
