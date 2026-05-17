@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class UserPrincipal {
     private String email;
-    private int customerId;
+    private long customerId;
 }

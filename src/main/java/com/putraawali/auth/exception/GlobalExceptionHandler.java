@@ -2,21 +2,28 @@ package com.putraawali.auth.exception;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.putraawali.auth.dto.response.ApiResponse;
+import com.putraawali.auth.dto.response.ErrorResponse;
+import com.putraawali.auth.enums.ErrorCodeEnum;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     private final String internalServerErrorMessage = "An unexpected error occurred";
+
+    private ResponseEntity<ApiResponse<Object>> internalServerError() {
+        ErrorResponse errorResponse = new ErrorResponse(internalServerErrorMessage, ErrorCodeEnum.INTERNAL_SERVER_ERROR);
+        ApiResponse<Object> response = ApiResponse.error(errorResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex) {
@@ -25,93 +32,61 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put("message", error.getDefaultMessage()));
 
-        ApiResponse<Object> response = ApiResponse.error(errors);
+        ErrorResponse errorResponse = new ErrorResponse("Validation failed", ErrorCodeEnum.VALIDATION_FAILED);
+        ApiResponse<Object> response = ApiResponse.error(errorResponse);
 
         return ResponseEntity.badRequest().body(response);
     }
     
-    @ExceptionHandler(AuthException.class)
-    public ResponseEntity<ApiResponse<Object>> handleAuthError(AuthException ex) {
-        Map<String, String> errors = new HashMap<>();
+    @ExceptionHandler(AuthServiceException.class)
+    public ResponseEntity<ApiResponse<Object>> handleAuthError(AuthServiceException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage(), ex.getErrorCode());
 
-        errors.put("message", ex.getMessage());
+        ApiResponse<Object> response = ApiResponse.error(errorResponse);
 
-        ApiResponse<Object> response = ApiResponse.error(errors);
+        int statusCode = errorResponse.getStatusCode();
 
-        HttpStatusCode statusCode = ex.getStatusCode() != null ? ex.getStatusCode() : HttpStatus.INTERNAL_SERVER_ERROR;
-
-        return ResponseEntity.status(Objects.requireNonNull(statusCode)).body(response);
+        return ResponseEntity.status(statusCode).body(response);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneralError(Exception ex) {
-        Map<String, String> errors = new HashMap<>();
-
-        errors.put("message", internalServerErrorMessage);
-        errors.put("details", ex.getMessage());
-
-        ApiResponse<Object> response = ApiResponse.error(errors);
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return internalServerError();
     }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Object>> handleRuntimeError(RuntimeException ex) {
-        Map<String, String> errors = new HashMap<>();
-
-        errors.put("message", internalServerErrorMessage);
-        errors.put("details", ex.getMessage());
-
-        ApiResponse<Object> response = ApiResponse.error(errors);
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return internalServerError();
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        Map<String, String> errors = new HashMap<>();
-
-        errors.put("message", "Invalid argument provided");
-        errors.put("details", ex.getMessage());
-
-        ApiResponse<Object> response = ApiResponse.error(errors);
+        ErrorResponse errorResponse = new ErrorResponse("Invalid argument provided", ErrorCodeEnum.INVALID_ARGUMENT);
+        ApiResponse<Object> response = ApiResponse.error(errorResponse);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(NullPointerException.class)
     public ResponseEntity<ApiResponse<Object>> handleNullPointer(NullPointerException ex) {
-        Map<String, String> errors = new HashMap<>();
-
-        errors.put("message", internalServerErrorMessage);
-        errors.put("details", ex.getMessage());
-
-        ApiResponse<Object> response = ApiResponse.error(errors);
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return internalServerError();
     }
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ApiResponse<Object>> handleIllegalState(IllegalStateException ex) {
-        Map<String, String> errors = new HashMap<>();
-
-        errors.put("message", internalServerErrorMessage);
-        errors.put("details", ex.getMessage());
-
-        ApiResponse<Object> response = ApiResponse.error(errors);
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return internalServerError();
     }
     
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ApiResponse<Object>> handleDataAccess(DataAccessException ex) {
-        Map<String, String> errors = new HashMap<>();
+        return internalServerError();
+    }
 
-        errors.put("message", internalServerErrorMessage);
-        errors.put("details", ex.getMessage());
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ApiResponse<Object>> NoHandlerFoundException(NoHandlerFoundException ex) {
+        ErrorResponse errorResponse = new ErrorResponse("Endpoint not found", ErrorCodeEnum.ROUTE_NOT_FOUND);
+        ApiResponse<Object> response = ApiResponse.error(errorResponse);
 
-        ApiResponse<Object> response = ApiResponse.error(errors);
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 }

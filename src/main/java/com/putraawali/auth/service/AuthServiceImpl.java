@@ -3,7 +3,6 @@ package com.putraawali.auth.service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +13,8 @@ import com.putraawali.auth.dto.request.RegisterRequest;
 import com.putraawali.auth.dto.response.TokenResponse;
 import com.putraawali.auth.entity.Session;
 import com.putraawali.auth.entity.User;
-import com.putraawali.auth.exception.AuthException;
+import com.putraawali.auth.enums.ErrorCodeEnum;
+import com.putraawali.auth.exception.AuthServiceException;
 import com.putraawali.auth.repository.SessionRepository;
 import com.putraawali.auth.repository.UserRepository;
 import com.putraawali.auth.security.jwt.JwtManager;
@@ -41,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void register(RegisterRequest req) {
         if (userRepository.findByEmail(req.getEmail()) != null) {
-            throw new AuthException("Email already registered", HttpStatus.BAD_REQUEST);
+            throw new AuthServiceException("Email already registered", ErrorCodeEnum.DUPLICATE_EMAIL);
         }
 
         String hashedPassword = passwordEncoder.encode(req.getPassword());
@@ -53,7 +53,6 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
-
     @Override
     public TokenResponse login(LoginRequest req) {
         final String email = req.getEmail();
@@ -61,7 +60,7 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByEmail(email);
         if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
-            throw new AuthException("Invalid credentials", HttpStatus.UNAUTHORIZED);
+            throw new AuthServiceException("Invalid credentials", ErrorCodeEnum.INVALID_CREDENTIALS);
         }
 
         // Revoke all existing sessions for the user to prevent multiple active sessions (optional, can be removed for allowing multiple sessions)
@@ -92,21 +91,21 @@ public class AuthServiceImpl implements AuthService {
 
         // 1. Validate session
         if (session == null) {
-            throw new AuthException("Invalid refresh token", HttpStatus.UNAUTHORIZED);
+            throw new AuthServiceException("Invalid refresh token", ErrorCodeEnum.INVALID_TOKEN);
         }
 
         // Reuse detection revoked session and all sessions with the same session ID to prevent further abuse
         if (session.getIsRevoked()) {
             sessionRepository.revokeAllBySessionId(session.getSessionId());
-            throw new AuthException("Refresh token reuse detected", HttpStatus.UNAUTHORIZED);
+            throw new AuthServiceException("Refresh token reuse detected", ErrorCodeEnum.INVALID_TOKEN);
         }
 
         if (session.getAbsoluteExpiration().isBefore(LocalDateTime.now())) {
-            throw new AuthException("Invalid or expired refresh token", HttpStatus.UNAUTHORIZED);
+            throw new AuthServiceException("Invalid or expired refresh token", ErrorCodeEnum.EXPIRED_TOKEN);
         }
 
         User user = userRepository.findById(session.getUserId())
-                .orElseThrow(() -> new AuthException("User not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new AuthServiceException("User not found", ErrorCodeEnum.DATA_NOT_FOUND));
 
         String newAccessToken = jwtManager.generateAccessToken(user);
         String newRefreshToken = jwtManager.generateRefreshToken(user);
@@ -127,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
     }
     
     @Override
-    public void logout(int customerId) {
-        sessionRepository.revokeAllByUserId((long) customerId);
+    public void logout(long customerId) {
+        sessionRepository.revokeAllByUserId(customerId);
     }
 }

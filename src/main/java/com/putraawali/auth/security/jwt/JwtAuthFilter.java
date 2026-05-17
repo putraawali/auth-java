@@ -2,7 +2,6 @@ package com.putraawali.auth.security.jwt;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,39 +25,41 @@ public class JwtAuthFilter extends OncePerRequestFilter{
     }
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
-            throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
+    protected void doFilterInternal(
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
+        
+        String token = resolveToken(request);
+        
+        if (IsNeedAuthentication(token)) {
+            JwtClaims claims = jwtManager.getAllClaims(token, JwtType.ACCESS);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return; // No token, continue without authentication
-        }
+            UserPrincipal userPrincipal = new UserPrincipal();
+            userPrincipal.setEmail(claims.getEmail());
+            userPrincipal.setCustomerId(claims.getCustomerId());
 
-        String token = authHeader.substring(7);
-        try {
-            boolean isValid = jwtManager.validateToken(token);
-            if (isValid) {
-                Map<String, Object> claims = jwtManager.getAllClaims(token);
-                UserPrincipal userPrincipal = new UserPrincipal();
-                userPrincipal.setEmail((String) claims.get("email"));
-                userPrincipal.setCustomerId(((Number) claims.get("customerId")).intValue());
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                userPrincipal, null, List.of() // No authorities for now
+            );
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                    userPrincipal, null, List.of() // No authorities for now
-                );
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (Exception e) {
-            // Invalid token, you can choose to reject the request or just continue without authentication
-            // For example, you can set response status to 401 Unauthorized
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            SecurityContextHolder.clearContext(); // Clear any existing security context
-            return; // Stop further processing
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         
         filterChain.doFilter(request, response);
+    }
+    
+    private String resolveToken(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+
+        if (bearer != null && bearer.startsWith("Bearer ")) {
+            return bearer.substring(7);
+        }
+
+        return null;
+    }
+
+    private boolean IsNeedAuthentication(String token) {
+        return token != null && jwtManager.validateToken(token, JwtType.ACCESS) && SecurityContextHolder.getContext().getAuthentication() == null;
     }
 }

@@ -6,21 +6,21 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.putraawali.auth.exception.CustomAuthenticationEntryPoint;
-import com.putraawali.auth.exception.JwtAccessDeniedHandler;
+import com.putraawali.auth.security.jwt.JwtAccessDeniedHandler;
 import com.putraawali.auth.security.jwt.JwtAuthFilter;
+import com.putraawali.auth.security.jwt.JwtAuthenticationEntryPoint;
 
 @Configuration
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
-    private final CustomAuthenticationEntryPoint jwtAuthenticatedEntryPoint;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, JwtAccessDeniedHandler jwtAccessDeniedHandler, CustomAuthenticationEntryPoint jwtAuthenticatedEntryPoint) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, JwtAccessDeniedHandler jwtAccessDeniedHandler, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
-        this.jwtAuthenticatedEntryPoint = jwtAuthenticatedEntryPoint;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Bean
@@ -39,7 +39,7 @@ public class SecurityConfig {
                     authenticated()
                 ).addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).
             exceptionHandling(ex -> ex
-                .authenticationEntryPoint(jwtAuthenticatedEntryPoint)
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .accessDeniedHandler(jwtAccessDeniedHandler)
             );
         return http.build();

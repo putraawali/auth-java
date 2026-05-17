@@ -1,0 +1,18 @@
+spring:
+    datasource:
+        url: jdbc:postgresql://localhost:5432/auth?useSSL=false&serverTimezone
+        username: postgres
+        password: postgres
+
+    jpa:
+        hibernate:
+            ddl-auto: update
+        show-sql: true
+
+jwt:
+    accessToken:
+        secretKey: access-token-secret-key-jwt-auth-service
+        expirationMinutes: 15
+    refreshToken:
+        secretKey: refresh-token-secret-key-jwt-auth-service
+        expirationMinutes: 20160

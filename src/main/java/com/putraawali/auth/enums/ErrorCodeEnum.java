@@ -1,0 +1,14 @@
+package com.putraawali.auth.enums;
+
+public enum ErrorCodeEnum {
+    DATA_NOT_FOUND,
+    INVALID_CREDENTIALS,
+    INVALID_TOKEN,
+    EXPIRED_TOKEN,
+    DUPLICATE_EMAIL,
+    INTERNAL_SERVER_ERROR,
+    INVALID_ARGUMENT,
+    VALIDATION_FAILED,
+    FORBIDDEN,
+    ROUTE_NOT_FOUND
+}

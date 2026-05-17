@@ -8,21 +8,19 @@ import lombok.Getter;
 public class ApiResponse<T> {
     private T data;
     private String message;
-    private Object error;
-    // private int statusCode;
+    private ErrorResponse error;
 
-    public ApiResponse(String message, T data, Object error /* , int statusCode*/) {
+    public ApiResponse(String message, T data, ErrorResponse error) {
         this.message = message;
         this.data = data;
         this.error = error;
-        // this.statusCode = statusCode;
     }
 
     public static <T> ApiResponse<T> success(T data) {
         return new ApiResponse<T>("success", data, null);
     }
 
-    public static <T> ApiResponse<T> error(Object error) {
+    public static <T> ApiResponse<T> error(ErrorResponse error) {
         return new ApiResponse<T>("error", null, error);
     }
     

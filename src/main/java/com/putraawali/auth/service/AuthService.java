@@ -12,5 +12,5 @@ public interface AuthService {
     // Refresh token implement sliding session based on absolute expiration
     TokenResponse refreshToken(String refreshToken);
 
-    void logout(int customerId);
+    void logout(long customerId);
 }
